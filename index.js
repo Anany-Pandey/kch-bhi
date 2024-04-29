@@ -24,7 +24,7 @@ function contains(obj,key){
 async function createAccount(usr,pass){
     let obj=JSON.parse(await load("users.txt","utf-8"));
     if(!contains(obj,usr)){
-        obj[usr]={pass:pass,data:{contacts:"",msgs:{}}}
+        obj[usr]={pass:pass,data:{msgs:{}}};
         await fs.writeFile("users.txt", JSON.stringify(obj, null, 2));
     }
     else{
@@ -45,8 +45,9 @@ async function authenticate(usr,pass){
         return false;
     }
 }
-function getcontacts(usr){
-
+function getmsgs(usr){
+    let obj=JSON.parse(await load("users.txt","utf-8"));
+    return obj[usr].data.msgs;
 }
 const server=http.createServer(async (req,res)=>{
 let request=parse(req.url);
@@ -72,7 +73,7 @@ else if(request[0]=="Create"){
         res.write("Username is already taken");
     }
     else{
-        createAccount(,request[1],,request[2]);
+        createAccount(request[1],,request[2]);
         res.writeHead(200,{"Content-Type":"text/plain"});
         res.write("Created");
     }
@@ -107,19 +108,24 @@ else{
 }
 );
 
-const socket=ws.Server({Server:server});
+const socket=new ws.Server({Server:server});
 socket.on("connection",async (user)=>{
     let usr;
     user.on("message"),(data)=>{
         data=data.split('/');
-        if(!authenticate(data[0],data[1]))
-        user.close();
+        if(!authenticate(data[0],data[1])){
+            user.close();
+            return;
+        }
         usr=[data[0]];
+        socket.send(getmsgs(usr));
     };
+    if(usr==undefined)return;
     user.on("message",(data)=>{
-        JSON.parse(await load("user.txt","utf-8"))
+        let obj=JSON.parse(await load("users.txt","utf-8"));
+        let format="<li class=\"a\">data<li>";
+        data=data.split("%#");
+        obj[usr][data][data[0]]+=format.replace("data",data[1]);
     });
-
-});
-
+);
 server.listen(port);
