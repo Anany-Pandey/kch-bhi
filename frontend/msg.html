@@ -1,0 +1,275 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Messanger</title>
+    </head>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+    
+        .appContainer {
+            display: flex;
+            height: 100vh;
+        }
+    
+        .contacts {
+            flex: 1;
+            background-color: #ffffff;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+    
+        .messages {
+            flex: 2;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+    
+        h1, h2 {
+            font-size: 200%;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+    
+        .contacts h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+            text-align: center;
+        }
+    
+        #addusr, #msg {
+            width: calc(100% - 90px);
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+    
+        #addusr:focus, #msg:focus {
+            border-color: #007bff;
+        }
+    
+        #add, #send {
+            width: 70px;
+            height: 46px; /* Adjusted height */
+            padding: 0;
+            margin-left: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+    
+        #add:hover, #send:hover {
+            background-color: #45a049;
+        }
+    
+        #err {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #ff6347;
+            text-align: center;
+        }
+    
+        #contactList p {
+           cursor: pointer;
+           margin-bottom: 10px;
+           font-size: 18px;
+           color: #444;
+           transition: color 0.3s ease;
+           border: 1px solid #ccc;
+           border-radius: 6px; 
+           padding: 10px; 
+        }
+        #messageList {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px; 
+        }
+    
+        .contactInfo h1 {
+            margin-top: 0;
+            font-size: 28px;
+            color: #333;
+            text-align: center;
+        }
+    
+        .sendContainer {
+            display: flex;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+    
+        .sendContainer input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+    
+        .sendContainer input:focus {
+            border-color: #007bff;
+        }
+    
+        .sendContainer img {
+            width: 46px;
+            height: 46px; 
+            margin-left: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+    
+        .sendContainer img:hover {
+            transform: scale(1.1);
+        }
+    
+        .message {
+            max-width: 70%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 20px;
+            font-size: 16px;
+        }
+        .b{
+            text-align: left;
+        }
+        .a{
+            text-align: right;
+        }
+    </style>
+    
+    
+    <body>
+        <div class="appContainer">
+            <div class="contacts">
+                <h2 style="text-align: center;">Contacts</h2>
+                <div style="display:flex;flex-direction: row;">
+                <input id="addusr" type="text" placeholder="Enter UserName">
+                <input  id="add" style="width: 110px;" type="button" value="Add Contact">
+                </div>
+                <p id="err" style="color:red;font-size:medium;text-align:center;margin:0px;padding: 0%;">&nbsp;</p>
+                <div id="contactList">
+                </div>
+            </div>
+            <div class="messages">
+                <div class="contactInfo" style="margin-top: 2px;">
+                    <h1>No Contact Selected</h1>
+                </div>
+                <div id="messageList">
+                </div>
+                <div class="sendContainer">
+                    <input  id="msg" type="text" placeholder="Message">
+                    <img id="send" src="send.svg" alt="send button">
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        let selected;
+        let obj;
+        let socket = new WebSocket(location.href.replace("http","ws"));
+        function exists(obj,key){
+            if(obj[key]==undefined){
+                return false;
+            }
+            return true;
+        };
+        add.onclick=()=>{
+            if(addusr.value==""){
+                return;
+            }
+            if(exists(obj,addusr.value)){
+                err.innerHTML="Username is Already in Contact List";
+                setTimeout(()=>{err.innerHTML="&nbsp;";},2000);
+                return;
+            }
+            socket.send(addusr.value);
+            socket.onmessage=(event)=>{
+                if(event.data!="true"){
+                    err.innerHTML="No Such Username Exists";
+                    setTimeout(()=>{err.innerHTML="&nbsp;";},2000);
+                }
+                else{
+                    obj[addusr.value]="";
+                    selected=addusr.value;
+                    let li=document.createElement("p");
+                    li.innerHTML=addusr.value;
+                    contactList.append(li);
+                    updatemsg(obj);
+                    addusr.value="";
+                }
+                setTimeout(()=>{socket.onmessage=defaultOnMessage;},100);
+            };
+
+
+        };
+        function updatemsg(obj){
+            document.getElementById("contactList").innerHTML="";
+            for(let keys in obj){
+                let li=document.createElement("p");
+                li.innerHTML=keys+"";
+                document.getElementById("contactList").append(li);
+                li.onclick=()=>{
+                    if(selected==keys){
+                        messageList.innerHTML="";
+                        selected=undefined;
+                        send.onclick=()=>{};
+                        document.getElementsByClassName("contactInfo")[0].innerHTML="<h1>No Contact Selected</h1>";
+                    }
+                    else{
+                        messageList.innerHTML=obj[keys];
+                        selected=keys;
+                        let h=document.createElement("h1");
+                        h.innerHTML=keys;
+                        document.getElementsByClassName("contactInfo")[0].innerHTML="";
+                        document.getElementsByClassName("contactInfo")[0].append(h);
+                        send.onclick=()=>{
+                        if(msg.value=="")return;
+                        socket.send(selected+"%#"+msg.value);
+                        msg.value="";
+                        };
+                    }
+                };
+                if(selected==keys){
+                    selected=undefined;
+                    li.onclick(); 
+                    selected==keys;
+                }
+            }
+
+        }
+        function defaultOnMessage(data){
+            obj=JSON.parse(data.data.toString());
+            updatemsg(obj);
+        }
+        socket.onopen=()=>{
+            socket.onmessage=defaultOnMessage; 
+        } 
+        socket.onclose=()=>{
+            setTimeout(()=>{location.reload();},200);
+        };
+    </script>
+</html>
