@@ -68,7 +68,7 @@
     
         #add, #send {
             width: 70px;
-            height: 46px; /* Adjusted height */
+            height: 46px;
             padding: 0;
             margin-left: 10px;
             cursor: pointer;
@@ -106,12 +106,15 @@
             overflow-y: auto;
             padding-right: 10px; 
         }
-    
-        .contactInfo h1 {
-            margin-top: 0;
-            font-size: 28px;
-            color: #333;
+        .contactInfo {
+            margin-top: 2px;
             text-align: center;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.1);
+            margin-bottom: 50px;
         }
     
         .sendContainer {
@@ -154,9 +157,12 @@
             font-size: 16px;
         }
         .b{
+            font-size: large;
             text-align: left;
+            
         }
         .a{
+            font-size: large;
             text-align: right;
         }
     </style>
@@ -238,6 +244,7 @@
                         selected=undefined;
                         send.onclick=()=>{};
                         document.getElementsByClassName("contactInfo")[0].innerHTML="<h1>No Contact Selected</h1>";
+                        li.style.color="#444";
                     }
                     else{
                         messageList.innerHTML=obj[keys];
@@ -251,6 +258,7 @@
                         socket.send(selected+"%#"+msg.value);
                         msg.value="";
                         };
+                        li.style.color="blue";
                     }
                 };
                 if(selected==keys){
