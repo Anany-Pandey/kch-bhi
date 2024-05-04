@@ -148,13 +148,13 @@ socket.on("connection",async(user,req)=>{
     user.on("message",async (data)=>{
         data=data.toString();
         data=data.split("%#");
-        data[0]=data[0].replace(/ /g, "%20");
-        data[1]=security.sanitize(data[0]);
         let obj=JSON.parse((await load("users.txt","utf-8")));
         if(data.length==1){
             user.send(""+contains(obj,data[0]));
             return;
         }
+        data[0]=data[0].replace(/ /g, "%20");
+        data[1]=security.sanitize(data[1]);
         let format='<p class="a">data</p>';
         if(obj[usr]["data"]["msgs"][data[0]]==undefined){
             obj[usr]["data"]["msgs"][data[0]]=format.replace("data",data[1]);
